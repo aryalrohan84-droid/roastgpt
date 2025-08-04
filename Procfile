@@ -1,1 +1,1 @@
-web: gunicorn Roasting:app
+gunicorn Roasting:app
