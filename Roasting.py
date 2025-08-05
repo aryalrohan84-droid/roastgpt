@@ -6,19 +6,22 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-API_KEY = os.getenv("DEESEEK_API_KEY")  # Your OpenRouter API key
+API_KEY = os.getenv("DEESEEK_API_KEY")
 API_URL = "https://openrouter.ai/api/v1/chat/completions"
 
 app = Flask(__name__)
 CORS(app)
 
+print("✅ API_KEY loaded:", bool(API_KEY))  # Debug: check if key is set
+
 @app.route("/chat", methods=["POST"])
 def chat():
     data = request.json
-    user_input = data.get("message", "")
-    level = data.get("level", "medium")  # default to medium if missing
+    print("📩 Received /chat request:", data)
 
-    # Roast level prompts
+    user_input = data.get("message", "")
+    level = data.get("level", "medium")
+
     prompts = {
         "easy": "Roast the user with a light, funny jab in 1 sentence — something playful but still makes them question their confidence.",
         "medium": "Roast the user with sharp sarcasm and subtle disrespect — make it sting under the surface, in exactly 1 sentence.",
@@ -43,18 +46,20 @@ def chat():
 
     try:
         response = requests.post(API_URL, headers=headers, json=payload)
+        print("🔍 DeepSeek Status Code:", response.status_code)
+        print("🔍 DeepSeek Response:", response.text)
+
         response.raise_for_status()
         result = response.json()
         roast = result["choices"][0]["message"]["content"].strip()
         return jsonify({"reply": roast})
-    except Exception as e:
-        print("🔥 API ERROR:", e)
-        return jsonify({"reply": "Sorry, I couldn't roast you 😢", "error": str(e)}), 500
 
+    except requests.exceptions.HTTPError as http_err:
+        return jsonify({"reply": None, "error": f"HTTP error: {response.status_code} - {response.text}"}), 500
+    except Exception as e:
+        print("🔥 API ERROR:", str(e))
+        return jsonify({"reply": None, "error": str(e)}), 500
 
 @app.route("/")
 def index():
     return "API is running"
-
-# if __name__ == "__main__":
-#    app.run(debug=True)
