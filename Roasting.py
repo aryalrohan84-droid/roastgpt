@@ -10,7 +10,7 @@ API_KEY = os.getenv("DEESEEK_API_KEY")
 API_URL = "https://openrouter.ai/api/v1/chat/completions"
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "https://roastgpt-ddeed.web.app"}})
 
 print("✅ API_KEY loaded:", bool(API_KEY))  # Debug: check if key is set
 
